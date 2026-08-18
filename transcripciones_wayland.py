@@ -55,7 +55,7 @@ archivo_log = os.path.join(base_dir, "autokey_Linux", "debug_log_wayland.txt")
 archivo_csv = os.path.join(base_dir, "organizador_csv", "csv_maestro_s2.csv")
 carpeta_guardado = os.path.join(base_dir, "transcripciones_locales")
 script_duplicados = os.path.join(base_dir, "check_duplicates", "check_duplicates.py")
-venv_python = "python3"
+venv_python = os.path.join(base_dir, "venv/bin/python3")
 
 # ==========================================
 #       MODO DESARROLLO
