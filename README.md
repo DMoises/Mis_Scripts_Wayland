@@ -32,4 +32,12 @@ Dado que en Plasma 6 ya no existe el antiguo módulo de "Accesos rápidos person
 
 ## Obtener coordenadas en Wayland
 
-En Wayland (KDE), la forma de obtener las coordenadas del cursor ya no es con `xdotool`. Puedes usar el script `ver_coordenadas_wayland.py` incluido en este repositorio para ver en tiempo real las coordenadas (X, Y) y poder configurar tus variables `x_iniciar_video`, `y_abrir_transcripcion`, etc.
+En Wayland (KDE), la forma de obtener las coordenadas del cursor en tiempo real es a través de la **Consola de Depuración de KWin** (una herramienta nativa y segura).
+
+Puedes ejecutar el script `ver_coordenadas_wayland.py` incluido en este repositorio o simplemente abrir tu terminal y pegar este comando en cualquier momento:
+
+```bash
+qdbus-qt6 org.kde.KWin /KWin org.kde.KWin.showDebugConsole
+```
+
+En la ventana que se abre, ve a la pestaña **Input Events** y mueve el ratón. Ahí podrás leer los valores absolutos de X e Y para configurar tus variables.
