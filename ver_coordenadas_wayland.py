@@ -1,44 +1,49 @@
 #!/usr/bin/env python3
-import time
+import tkinter as tk
 import subprocess
-import os
 
 print("========================================")
-print(" RASTREADOR DE COORDENADAS PARA KDE WAYLAND ")
+print(" RASTREADOR DE COORDENADAS (INTERACTIVO) ")
 print("========================================")
-print("Presiona Ctrl+C para salir.\n")
+print("La pantalla se oscurecerá levemente.")
+print("Haz clic en el punto exacto del que quieres obtener las coordenadas.")
+print("Presiona ESC si quieres cancelar.\n")
 
-def get_cursor_pos():
-    # En KDE Wayland, qdbus nos permite obtener la posición del cursor de forma segura.
-    # Intentamos primero con qdbus6 (Plasma 6) y luego con qdbus (Plasma 5).
-    commands = [
-        ["qdbus-qt6", "org.kde.KWin", "/KWin", "org.kde.KWin.cursorPos"],
-        ["qdbus6", "org.kde.KWin", "/KWin", "org.kde.KWin.cursorPos"],
-        ["qdbus", "org.kde.KWin", "/KWin", "org.kde.KWin.cursorPos"]
-    ]
+def show_coordinates(event):
+    x = event.x_root
+    y = event.y_root
+    print(f"✅ ¡Clic detectado!")
+    print(f"📍 Coordenadas absolutas: X = {x} | Y = {y}")
     
-    for cmd in commands:
-        try:
-            output = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, text=True).strip()
-            # La salida suele ser algo como: QPoint(840,520) o similar
-            if "QPoint" in output:
-                # Extraemos los números
-                coords = output.replace("QPoint(", "").replace(")", "").split(",")
-                if len(coords) == 2:
-                    return f"X: {coords[0].strip()} | Y: {coords[1].strip()}"
-            return output
-        except FileNotFoundError:
-            pass # Si no encuentra qdbus6, intenta con el siguiente
-        except subprocess.CalledProcessError:
-            pass # Si falla el comando, intenta con el siguiente
-            
-    return "Error: No se pudo obtener la posición (¿Estás usando KDE Wayland y qdbus está instalado?)"
+    # Intentar copiar al portapapeles nativo de Wayland usando wl-copy
+    try:
+        process = subprocess.Popen(["wl-copy"], stdin=subprocess.PIPE, text=True)
+        process.communicate(input=f"{x}, {y}")
+        print("📋 ¡Coordenadas copiadas a tu portapapeles de Wayland automáticamente!")
+    except Exception:
+        # Fallback al portapapeles de tkinter
+        root.clipboard_clear()
+        root.clipboard_append(f"{x}, {y}")
+        print("📋 ¡Coordenadas copiadas al portapapeles!")
+        
+    root.destroy()
 
-try:
-    while True:
-        pos = get_cursor_pos()
-        # Borra la línea actual y reescribe (como hace el watch)
-        print(f"\rPosición actual: {pos}          ", end="", flush=True)
-        time.sleep(0.1)
-except KeyboardInterrupt:
-    print("\n¡Rastreo finalizado!")
+root = tk.Tk()
+root.attributes('-fullscreen', True)
+root.attributes('-alpha', 0.5) # Semitransparente para ver el fondo
+root.configure(background='black')
+root.config(cursor="crosshair")
+
+label = tk.Label(root, 
+                 text="HAZ CLIC EXACTAMENTE DONDE QUIERAS MEDIR\n\n(Presiona la tecla ESC para salir sin medir)", 
+                 fg="white", 
+                 bg="black", 
+                 font=("Arial", 20, "bold"))
+label.pack(expand=True)
+
+# Capturar el clic izquierdo
+root.bind("<Button-1>", show_coordinates)
+# Tecla de escape para salir
+root.bind("<Escape>", lambda e: root.destroy())
+
+root.mainloop()
