@@ -12,6 +12,7 @@ def get_cursor_pos():
     # En KDE Wayland, qdbus nos permite obtener la posición del cursor de forma segura.
     # Intentamos primero con qdbus6 (Plasma 6) y luego con qdbus (Plasma 5).
     commands = [
+        ["qdbus-qt6", "org.kde.KWin", "/KWin", "org.kde.KWin.cursorPos"],
         ["qdbus6", "org.kde.KWin", "/KWin", "org.kde.KWin.cursorPos"],
         ["qdbus", "org.kde.KWin", "/KWin", "org.kde.KWin.cursorPos"]
     ]
