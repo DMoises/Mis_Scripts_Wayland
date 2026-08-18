@@ -1,11 +1,24 @@
 #!/usr/bin/env python3
 import tkinter as tk
 import subprocess
+import os
 
 print("========================================")
 print(" RASTREADOR DE COORDENADAS (INTERACTIVO) ")
 print("========================================")
-print("La pantalla se oscurecerá levemente.")
+print("Tomando captura de pantalla temporal (congelando imagen)...")
+
+# 1. Tomar captura de pantalla silenciosa con Spectacle
+img_path = "/tmp/wayland_coord_screen.png"
+if os.path.exists(img_path):
+    os.remove(img_path)
+    
+subprocess.run(["spectacle", "-b", "-n", "-o", img_path])
+
+if not os.path.exists(img_path):
+    print("Error: No se pudo tomar la captura con Spectacle. ¿Está instalado?")
+    exit(1)
+
 print("Haz clic en el punto exacto del que quieres obtener las coordenadas.")
 print("Presiona ESC si quieres cancelar.\n")
 
@@ -24,22 +37,24 @@ def show_coordinates(event):
         # Fallback al portapapeles de tkinter
         root.clipboard_clear()
         root.clipboard_append(f"{x}, {y}")
-        print("📋 ¡Coordenadas copiadas al portapapeles!")
+        print("📋 ¡Coordenadas copiadas al portapapeles (alternativo)!")
         
     root.destroy()
 
 root = tk.Tk()
 root.attributes('-fullscreen', True)
-root.attributes('-alpha', 0.5) # Semitransparente para ver el fondo
-root.configure(background='black')
 root.config(cursor="crosshair")
 
-label = tk.Label(root, 
-                 text="HAZ CLIC EXACTAMENTE DONDE QUIERAS MEDIR\n\n(Presiona la tecla ESC para salir sin medir)", 
-                 fg="white", 
-                 bg="black", 
-                 font=("Arial", 20, "bold"))
-label.pack(expand=True)
+# Cargar la imagen y ponerla de fondo
+img = tk.PhotoImage(file=img_path)
+canvas = tk.Canvas(root, width=img.width(), height=img.height(), highlightthickness=0)
+canvas.pack(fill="both", expand=True)
+canvas.create_image(0, 0, image=img, anchor="nw")
+
+# Añadir un texto flotante arriba
+canvas.create_text(img.width()//2, 50, 
+                   text="HAZ CLIC EXACTAMENTE DONDE QUIERAS MEDIR (Presiona ESC para salir)", 
+                   fill="red", font=("Arial", 20, "bold"))
 
 # Capturar el clic izquierdo
 root.bind("<Button-1>", show_coordinates)
@@ -47,3 +62,7 @@ root.bind("<Button-1>", show_coordinates)
 root.bind("<Escape>", lambda e: root.destroy())
 
 root.mainloop()
+
+# Limpiar
+if os.path.exists(img_path):
+    os.remove(img_path)
